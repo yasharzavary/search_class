@@ -1,3 +1,13 @@
+"""
+Node.py - manage nodes of all node-structured systems like tree, graph and etc.
+you can control the name of nodes, children of them and other.
+
+author: yashar zavary rezaie
+Email: zavaryyashar009@gmail.com
+last update: April 2, 2025
+
+I will appreciate for your suggestions about this class.
+"""
 from string import ascii_uppercase, ascii_lowercase, digits
 from random import choice
 
@@ -7,9 +17,18 @@ from random import choice
 # main class
 class Node:
     def __init__(self, name: str = ''.join([choice(ascii_uppercase + ascii_lowercase + digits) for _ in range(10)]),
-                 child_list: list = None,):
+                 child_list: list = None,
+                 ):
         """
-            Node class.
+        Node class.
+
+        Attributes:
+            name(str): name of this node.
+                default: one random name created by upper & lower case ascii and digits.
+            child_list(list): list of child nodes created by this node.
+                NOTE: they must be Node type.
+                default: one empty list.
+
 
         :param name: name of Node.
         :param child_list: children of this Node.
