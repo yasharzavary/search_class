@@ -15,34 +15,23 @@ from Node import Node
 
 # main class
 class Graph:
-    have_start = False
-    have_end = False
 
-    def __init__(self, root_node: [str, Node] = None,
-                 start: bool = False,
-                 end: bool = False):
-        # control root node details.
-        if isinstance(root_node, str):
-            if root_node is None:
-                self.__root = Node()
-            else:
-                self.__root = Node(root_node)
-        elif isinstance(root_node, Node):
-            self.__root = root_node
+    def __init__(self, start_node: Node, goal_nodes: list):
+        self.__control(start_node)
+        self.__control(goal_nodes)
+
+        self.__startRoot = start_node
+        self.__goalRoot = goal_nodes
+
+
+    def __control(self, nodes: [Node, list]):
+        if isinstance(nodes, list):
+            for node in nodes:
+                if not isinstance(node, Node): raise TypeError(f'Nodes must be {type(Node)}, {node} is not!')
+        elif not isinstance(nodes, Node):
+            raise TypeError(f'Nodes must be {type(Node)}, {nodes} is not!')
         else:
-            raise TypeError(f'node should be {type(Node)} or string -name- type')     # if it isn't node type, raise.
-
-        # graph start and end control info.
-        self.__graph_start = True
-        if start:
-            self.have_start = True
-            self.__graph_start = True
-
-        self.__graph_end = True
-        if end:
-            self.have_end = True
-            self.__graph_end = True
-
+            raise TypeError(f'Nodes must be {type(Node)}.')
 
 
 
