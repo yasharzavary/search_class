@@ -4,18 +4,25 @@ from random import choice
 # built-in Errors
 
 
-
 # main class
 class Node:
     def __init__(self, name: str = ''.join([choice(ascii_uppercase + ascii_lowercase + digits) for _ in range(10)]),
                  child_list: list = None,
                  Goal: bool = False,
                  start: bool = False):
+        """
+            Node class.
+
+        :param name: name of Node.
+        :param child_list: children of this Node.
+        :param Goal: is this node goal or not.
+        :param start: is this node start or not.
+        """
 
         self.__name = name           # this Node name that we can use in search.
         self.__children = list()     # empty child list.
         if child_list is not None:
-            pass  # add children if it isn't None.
+            self.__children = child_list  # add children if it isn't None.
 
         # what is bool detail of this node.
         self.__goal = Goal
@@ -51,7 +58,6 @@ class Node:
     @property
     def start(self):
         return self.__start
-
 
     @start.setter
     def start(self, start):
