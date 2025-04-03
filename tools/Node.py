@@ -15,9 +15,9 @@ import warnings
 
 class childPriceLenghtLen(Exception):
     def __init__(self, message):
-        self.message = message
+        self.__message = message
     def __str__(self):
-        return self.message
+        return self.__message
 
 # main class
 class Node:
@@ -57,6 +57,7 @@ class Node:
             self.__price_list = price_list
         else:
             self.__price_list = [1 for _ in range(len(child_list))]  # set default cost 1
+            warnings.warn('price list doesn\'t given, default cost 1 set to price list', UserWarning)
 
         # create info dict for Node.
         if info is not None and not isinstance(info, dict): raise TypeError('info must be a dict')
