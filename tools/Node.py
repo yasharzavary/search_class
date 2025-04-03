@@ -43,6 +43,7 @@ class Node:
         :param name: name of Node.
         :param child_list: children of this Node.
         """
+        if child_list is None: child_list = list()
         if name is None:
             name = f'Node{Node.node_number}'
             Node.node_number += 1
@@ -76,9 +77,12 @@ class Node:
         return self.__children
 
     @children.setter
-    def children(self, children):
+    def children(self, children: list):
+        if not isinstance(children, list): raise TypeError('children must given in  list')
         for child in children:
             if not isinstance(child, Node):             # if one child no Node type, raise error.
                 raise TypeError(f'child of one Node must be a Node({child})')
             self.__children.append(child)
 
+    def __repr__(self):
+        return self.name
