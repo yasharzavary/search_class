@@ -52,6 +52,16 @@ class Graph:
 
 
     def DFS_search(self, mode: str = 'check'):
+        """
+            DFS search manager, use classic way for finding path and exist check of one node from your given graph
+            Attributes:
+                mode: if you want just checking one node, use this
+                      if you want to get path for reach node, use this
+                NOTICE: using path mode, increase space usage and slower speed...so if you need use it.
+                DEFAULT: default value is check.
+        :param mode: checking one node or finding path.
+        :return:
+        """
         if mode not in ['check', 'path']: raise FalseSearchMode('search mode must be path or check')
         frontier = [self.__startRoot]
         visited = list()
@@ -88,6 +98,16 @@ class Graph:
         return 'goal node doesn\'t exist'
 
     def BFS_search(self, mode: str = 'check'):
+        """
+            BFS search manager, it can find you optimal path for reaching you goal or just checking one node.
+                Attributes:
+                - mode: if you want just checking one node, use this
+                if you want to get path for reach node, use this
+                NOTICE: using path mode, increase space usage and slower speed...so if you need use it.
+                DEFAULT: default value is check.
+        :param mode: checking one node or finding path.
+        :return:
+        """
         if mode not in ['check', 'path']: raise FalseSearchMode('search mode must be path')
         frontier = [self.__startRoot]
         visited = list()
