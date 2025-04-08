@@ -1,12 +1,13 @@
 from PySide6.QtWidgets import (
-QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem, QGraphicsScene
+QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem, QGraphicsScene, QGraphicsView
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QBrush, QPen, QColor
+from PySide6.QtGui import QBrush, QPen, QColor, QPainter
 
 
 
 # TODO: functions parameter definition
+# TODO: control x and y of circles depend on graph screen
 
 class GraphNode(QGraphicsEllipseItem):
     def __init__(self, name, x, y, radius=30):
@@ -151,15 +152,15 @@ class GraphScene(QGraphicsScene):
             self.root_node.setBrush(QBrush(QColor("green")))
         # TODO: error for not exist node.
 
-    def add_goal_node(self, node_id):
+    def add_goal_node(self, node_name):
         """
             add new goal node.
         :param node_id: id that we want to change it to goal
         :return:
         """
-        if node_id not in self.nodes:
+        if node_name not in self.nodes:
             pass
-        temp = self.nodes[node_id]
+        temp = self.nodes[node_name]
         temp.setBrush(QBrush(QColor("red")))
         self.goal_nodes.append(temp)
         # TODO: delete if not exist node happen
@@ -190,3 +191,18 @@ class GraphScene(QGraphicsScene):
         for node in self.nodes.values():
             for edge in node.connections:
                 edge.update_position()
+
+
+class GraphView(QGraphicsView):
+    def __init__(self, scene):
+        """
+            chnage position of nodes and edges when nodes move
+        :param scene:
+        """
+        super().__init__(scene)
+        self.setRenderHint(QPainter.Antialiasing)
+        self.setSceneRect(-300, -300, 600, 600)
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        self.scene().update_edges()
