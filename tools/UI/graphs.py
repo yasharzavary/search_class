@@ -1,19 +1,26 @@
 from PySide6.QtWidgets import (
-QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem, QGraphicsScene, QGraphicsView
+QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem,
+ QGraphicsScene, QGraphicsView
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal, QObject
 from PySide6.QtGui import QBrush, QPen, QColor, QPainter
 
+# Errors
 
 
-# TODO: functions parameter definition
-# TODO: control x and y of circles depend on graph screen
+# TODO: functions parameter definition.
+# TODO: control x and y of circles depend on graph screen.
+# TODO: graph without root and goal node error.
+# TODO: one node repeat twicen error.
+
+class NodeSignal(QObject):
+    click = Signal(object)
 
 class GraphNode(QGraphicsEllipseItem):
     def __init__(self, name, x, y, radius=30):
         """
             used for adding nodes.
-        :param id: id of node for detect unique parts
+        :param name: name of node for detect unique parts
         :param x: x coordinate of node
         :param y: y coordinate of node
         :param radius: radius of node
@@ -21,7 +28,7 @@ class GraphNode(QGraphicsEllipseItem):
         # TODO: postion control, the positions shouldn't go out from scene
         super().__init__(-radius / 2, -radius / 2, radius, radius)
 
-        self.name = name
+        self.name = str(name)
         self.setPos(x, y)
         self.setBrush(QBrush(QColor("skyblue")))
         self.setPen(QPen(Qt.black, 2))
@@ -30,12 +37,14 @@ class GraphNode(QGraphicsEllipseItem):
         self.setFlag(QGraphicsEllipseItem.ItemIsMovable)
         self.setFlag(QGraphicsEllipseItem.ItemIsSelectable)
 
-        self.text = QGraphicsTextItem(str(id), self)
+        self.text = QGraphicsTextItem(self.name, self)
         self.text.setDefaultTextColor(Qt.black)
         self.text.setPos(-10, -10)
 
         self.connections = []
         self.connected_nodes = []
+
+        self.signals = NodeSignal()
 
     def delete(self, scene):
         """
@@ -47,6 +56,10 @@ class GraphNode(QGraphicsEllipseItem):
         for line in self.connections:
             scene.removeItem(line)
         scene.removeItem(self)
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        self.signals.click.emit(self)
 
 
 class GraphEdge(QGraphicsLineItem):
@@ -194,12 +207,13 @@ class GraphScene(QGraphicsScene):
 
 
 class GraphView(QGraphicsView):
-    def __init__(self, scene):
+    def __init__(self, scene, weight=400, height=700):
         """
             chnage position of nodes and edges when nodes move
         :param scene:
         """
         super().__init__(scene)
+        self.setFixedSize(weight, height)
         self.setRenderHint(QPainter.Antialiasing)
         self.setSceneRect(-300, -300, 600, 600)
 

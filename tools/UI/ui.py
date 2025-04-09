@@ -29,7 +29,6 @@ class MainWindow(QMainWindow):
         # graphic scene details
         self.scene = GraphScene()
         self.view = GraphView(self.scene)
-        self.scene.add_node('x', 0, 0)
 
         # tools layout
         self.tool_layout = QVBoxLayout()
@@ -52,7 +51,7 @@ class MainWindow(QMainWindow):
         back_button = QPushButton('Back')
 
         back_button.clicked.connect(self.__add_main_buttons)
-
+        add_note.clicked.connect(self.__add_node)
 
         self.tool_layout.addWidget(add_note, alignment = Qt.AlignTop)
         self.tool_layout.addStretch(0)
@@ -91,3 +90,12 @@ class MainWindow(QMainWindow):
             child = layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
+
+    
+    def __add_node(self):
+        node = self.scene.add_node('x', -150, -270)
+        node.signals.click.connect(self.__node_section)
+    
+    def __node_section(self, node):
+        print('node clicked, name of node is ', node.name)
+
