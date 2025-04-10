@@ -154,11 +154,13 @@ class MainWindow(QMainWindow):
         :param node: user's selected node
         :return:
         """
+        print('edge mode is', self.edge_mode)
         if self.edge_mode:
             if node in self.source_node.connected_nodes:
                 self.scene.delete_edge(self.source_node, node)
             else:
                 self.scene.add_edges_from_list(self.source_node, [node])
+            self.__add_connected_nodes_labels(self.source_node)
         else:
             self.source_node = node
             self.__remove_widgets(self.tool_layout)
@@ -196,13 +198,14 @@ class MainWindow(QMainWindow):
 
 
     def __add_connected_nodes_labels(self, node: GraphNode):
-        connection_names = [connected_node.name for connected_node in node.connected_nodes()]
+        self.__remove_widgets(self.label_layout)
+        self.edge_mode = True
+        connection_names = [connected_node.name for connected_node in node.connected_nodes]
         for name in connection_names:
             temp_name_label = QLabel(name)
             self.label_layout.addWidget(temp_name_label)
 
     def __add_edge(self):
-        self.edge_mode = True
 
         # labels
         definition_label = QLabel('connected Labels: ')
@@ -216,6 +219,9 @@ class MainWindow(QMainWindow):
         self.label_container = QWidget()
         self.label_layout = QVBoxLayout(self.label_container)
 
+        # add nodes to layout
+        self.__add_connected_nodes_labels(self.source_node)
+
         # Configure scroll area
         scroll.setWidget(self.label_container)
 
@@ -225,6 +231,10 @@ class MainWindow(QMainWindow):
 
         # button connections
         back_btn.clicked.connect(self.__add_main_buttons)
+
+        self.__remove_widgets(self.tool_layout)                 # delete all widgets from main layout of tools.
+
+        self.edge_mode = True                                   # control edge mode for next time
 
         # add to layout
         self.tool_layout.addWidget(definition_label, alignment=Qt.AlignTop)
