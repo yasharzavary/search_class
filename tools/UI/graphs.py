@@ -100,6 +100,25 @@ class GraphScene(QGraphicsScene):
         self.root_node: [GraphNode, None] = None
         self.goal_nodes: list = list()
 
+    def delete_edge(self, node1, node2):
+        """
+            ues for removing nodes between two node
+        :param node1:
+        :param node2:
+        :return:
+        """
+
+        for edge in node1.connections:
+            if edge.node2 == node2 or edge.node1 == node2:
+                temp_edge = edge
+                node1.connections.remove(edge)
+                node1.connected_nodes.remove(node2)
+        for edge in node2.connections:
+            if edge.node1 == node1 or edge.node2 == node1:
+                node2.connections.remove(edge)
+                node2.connected_nodes.remove(node1)
+        self.removeItem(temp_edge)
+
     def add_node(self, name, x, y):
         """
             add new node
@@ -116,17 +135,23 @@ class GraphScene(QGraphicsScene):
         self.nodes[name] = node
         return node
 
-    def add_edges_from_list(self, source_name, target_ids):
+    def add_edges_from_list(self, source, target_ids):
         """
             we can give one node and connections of it to this functions and this will connect them
         :param source_id: id of node that edges will go out from it.
         :param target_ids: ids of nodes that will have connection with our source node.
         :return:
         """
-        source = self.nodes.get(source_name)     # read source node.
+        print('graph loading for adding edge between nodes ', source, ' and ', target_ids)
+        if not isinstance(source, GraphNode):
+            source = self.nodes.get(source)     # read source node.
+        print(source)
         # TODO: error for node not finding.
         for tid in target_ids:
-            target = self.nodes.get(tid)
+            if not isinstance(tid, GraphNode):
+                target = self.nodes.get(tid)
+            else:
+                target = tid    
             # TODO: error for node not finding.
             if target:
                 edge = GraphEdge(source, target)
@@ -135,7 +160,7 @@ class GraphScene(QGraphicsScene):
                 target.connections.append(edge)
                 # add ids to list of connections of both node.
                 source.connected_nodes.append(tid)
-                target.connected_nodes.append(source_name)
+                target.connected_nodes.append(source)
                 self.addItem(edge)
 
     def delete_node(self, node_name):
