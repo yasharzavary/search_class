@@ -46,6 +46,12 @@ class GraphNode(QGraphicsEllipseItem):
 
         self.signals = NodeSignal()
 
+    def change_name(self,  new_name):
+        self.name = new_name
+        self.text = QGraphicsTextItem(new_name, self)
+        self.text.setDefaultTextColor(Qt.black)
+        self.text.setPos(-10, -10)
+
     def delete(self, scene):
         """
             used for deleting one node,
@@ -118,6 +124,10 @@ class GraphScene(QGraphicsScene):
                 node2.connections.remove(edge)
                 node2.connected_nodes.remove(node1)
         self.removeItem(temp_edge)
+
+    def change_name(self, node, new_name):
+        self.removeItem(node.text)
+        node.change_name(new_name)
 
     def add_node(self, name, x, y):
         """

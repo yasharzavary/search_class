@@ -202,6 +202,10 @@ class MainWindow(QMainWindow):
 
 
     def __apply_changes(self):
+        """
+            apply changes of graph and show on scene.
+        :return:
+        """
         if self.root_node.isChecked() and self.source_node != self.scene.root_node:
             self.scene.set_root_node(self.source_node)
         elif not self.root_node.isChecked() and self.source_node == self.scene.root_node:
@@ -211,8 +215,18 @@ class MainWindow(QMainWindow):
         elif not self.goal_node.isChecked() and self.source_node  in self.scene.goal_nodes:
             self.scene.delete_goal_node(self.source_node)
 
+        candidate_name = self.node_name_input.text().strip()
+        if candidate_name != self.source_node.name:
+            self.scene.change_name(self.source_node, candidate_name)
+
 
     def __add_connected_nodes_labels(self, node: GraphNode):
+        """
+            added user's connection candidates if it possible
+            or delete the connection.
+        :param node:
+        :return:
+        """
         self.__remove_widgets(self.label_layout)
         self.edge_mode = True
         connection_names = [connected_node.name for connected_node in node.connected_nodes]
@@ -221,6 +235,10 @@ class MainWindow(QMainWindow):
             self.label_layout.addWidget(temp_name_label)
 
     def __add_edge(self):
+        """
+            add edge name to node's edge show part.
+        :return:
+        """
 
         # labels
         definition_label = QLabel('connected Labels: ')
