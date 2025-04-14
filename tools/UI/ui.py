@@ -154,8 +154,8 @@ class MainWindow(QMainWindow):
         :param node: user's selected node
         :return:
         """
-        print('edge mode is', self.edge_mode)
         if self.edge_mode:
+            if self.source_node == node: return
             if node in self.source_node.connected_nodes:
                 self.scene.delete_edge(self.source_node, node)
             else:
@@ -173,10 +173,14 @@ class MainWindow(QMainWindow):
 
             # check boxs
             self.root_node = QCheckBox("Root Node")
+            if node == self.scene.root_node:
+                self.root_node.setChecked(True)
             self.goal_node = QCheckBox("Goal Node")
+            if node in self.scene.goal_nodes:
+                self.goal_node.setChecked(True)
 
             # button definition
-            change_btn = QPushButton('Apply changes')
+            self.change_btn = QPushButton('Apply changes')
             self.unselect_btn = QPushButton('Unselect')
             self.edge_control = QPushButton('Edge control')
 
@@ -185,7 +189,7 @@ class MainWindow(QMainWindow):
             # actions
             self.unselect_btn.clicked.connect(self.__add_main_buttons)
             self.edge_control.clicked.connect(self.__add_edge)
-            # TODO: action of change button
+            self.change_btn.clicked.connect(self.__apply_changes)
 
             # add to layout
             self.tool_layout.addWidget(self.node_name_input, alignment=Qt.AlignTop)
@@ -193,8 +197,19 @@ class MainWindow(QMainWindow):
             self.tool_layout.addWidget(self.root_node, alignment=Qt.AlignTop)
             self.tool_layout.addWidget(self.goal_node, alignment=Qt.AlignTop)
             self.tool_layout.addStretch(0)
-            # self.tool_layout.addWidget(self.change_btn, alignment=Qt.AlignBottom)
+            self.tool_layout.addWidget(self.change_btn, alignment=Qt.AlignBottom)
             self.tool_layout.addWidget(self.unselect_btn, alignment=Qt.AlignBottom)
+
+
+    def __apply_changes(self):
+        if self.root_node.isChecked() and self.source_node != self.scene.root_node:
+            self.scene.set_root_node(self.source_node)
+        elif not self.root_node.isChecked() and self.source_node == self.scene.root_node:
+            self.scene.delete_root_node()
+        if self.goal_node.isChecked() and self.source_node not in self.scene.goal_nodes:
+            self.scene.add_goal_node(self.source_node)
+        elif not self.goal_node.isChecked() and self.source_node  in self.scene.goal_nodes:
+            self.scene.delete_goal_node(self.source_node)
 
 
     def __add_connected_nodes_labels(self, node: GraphNode):
@@ -214,6 +229,8 @@ class MainWindow(QMainWindow):
         # Create scroll area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setMinimumHeight(100)
+
 
         # Container for labels
         self.label_container = QWidget()

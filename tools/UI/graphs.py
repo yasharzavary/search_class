@@ -241,10 +241,9 @@ class GraphScene(QGraphicsScene):
         if node_id not in self.goal_nodes:
             pass  # TODO: node id not in goal node error
 
-        self.goal_nodes.remove(node_id)
-        temp = self.nodes.get(node_id)
-        temp.delete()
-
+        temp = self.nodes.get(node_id) if isinstance(node_id, str) else node_id
+        temp.setBrush(QBrush(QColor("skyblue")))
+        self.goal_nodes.remove(temp)
 
     def update_edges(self):
         """
