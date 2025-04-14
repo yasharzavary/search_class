@@ -179,26 +179,51 @@ class GraphScene(QGraphicsScene):
     def set_root_node(self, node_name):
         """
             setting root node
-        :param node_id: id that we want to change it to root.
+        :param node_name: id that we want to change it to root.
         :return:
         """
-        if node_name in self.nodes:
-            if self.root_node:       # if another node is root, change it.
-                # TODO: warning for changing the node.
-                self.root_node.setBrush(QBrush(QColor("skyblue")))
+        if self.root_node:  # if another node is root, change it.
+            # TODO: warning for changing the node.
+            self.root_node.setBrush(QBrush(QColor("skyblue")))
+
+        if isinstance(node_name, GraphNode) and node_name not in list(self.nodes.keys()):
+            pass
+            # TODO: error handling
+        elif isinstance(node_name, str) and node_name not in self.nodes:
+            pass
+            # TODO: error handling
+        else:
+            pass
+            # TODO: error handling
+
+        if isinstance(node_name, str):
             self.root_node = self.nodes[node_name]
-            self.root_node.setBrush(QBrush(QColor("green")))
-        # TODO: error for not exist node.
+        else:
+            self.root_node = node_name
+
+        self.root_node.setBrush(QBrush(QColor("green")))
+
+    def delete_root_node(self):
+        if self.root_node is not None:
+            self.root_node.setBrush(QBrush(QColor("skyblue")))
+            self.root_node = None
 
     def add_goal_node(self, node_name):
         """
             add new goal node.
-        :param node_id: id that we want to change it to goal
+        :param node_name: id that we want to change it to goal
         :return:
         """
-        if node_name not in self.nodes:
+        if isinstance(node_name, GraphNode) and node_name not in list(self.nodes.keys()):
             pass
-        temp = self.nodes[node_name]
+            # TODO: error handling
+        elif isinstance(node_name, str) and node_name not in self.nodes:
+            pass
+            # TODO: error handling
+        else:
+            pass
+            # TODO: error handling
+        temp = self.nodes[node_name] if isinstance(node_name, str) else node_name
         temp.setBrush(QBrush(QColor("red")))
         self.goal_nodes.append(temp)
         # TODO: delete if not exist node happen
