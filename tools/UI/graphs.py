@@ -47,6 +47,11 @@ class GraphNode(QGraphicsEllipseItem):
         self.signals = NodeSignal()
 
     def change_name(self,  new_name):
+        """
+            changing name of node.
+        :param new_name: new name that user want to set for one node.
+        :return:
+        """
         self.name = new_name
         self.text = QGraphicsTextItem(new_name, self)
         self.text.setDefaultTextColor(Qt.black)
@@ -59,6 +64,7 @@ class GraphNode(QGraphicsEllipseItem):
         :param scene:
         :return:
         """
+        # delete connections of one node.
         for line in self.connections:
             scene.removeItem(line)
         scene.removeItem(self)
@@ -113,19 +119,28 @@ class GraphScene(QGraphicsScene):
         :param node2:
         :return:
         """
-
+        # find edge(if exist) between two node.
+        # delete connection between two edge list of nodes.
         for edge in node1.connections:
             if edge.node2 == node2 or edge.node1 == node2:
-                temp_edge = edge
+                temp_edge = edge                                      # save connection
                 node1.connections.remove(edge)
                 node1.connected_nodes.remove(node2)
         for edge in node2.connections:
             if edge.node1 == node1 or edge.node2 == node1:
                 node2.connections.remove(edge)
                 node2.connected_nodes.remove(node1)
+
+        # delete from scene.
         self.removeItem(temp_edge)
 
     def change_name(self, node, new_name):
+        """
+            remove name and add new name for one node.
+        :param node: node that will change name
+        :param new_name: new name that user want for one node.
+        :return:
+        """
         self.removeItem(node.text)
         node.change_name(new_name)
 
@@ -137,10 +152,12 @@ class GraphScene(QGraphicsScene):
         :param y: y position of node
         :return:
         """
+        # if name doesn't exist, add default.
         if name is None:
             name = str(self.node_counter)
             self.node_counter += 1
         node = GraphNode(name, x, y)    # creat new node.
+        # add to collections
         self.addItem(node)
         self.nodes[name] = node
         return node
@@ -152,10 +169,8 @@ class GraphScene(QGraphicsScene):
         :param target_ids: ids of nodes that will have connection with our source node.
         :return:
         """
-        print('graph loading for adding edge between nodes ', source, ' and ', target_ids)
         if not isinstance(source, GraphNode):
             source = self.nodes.get(source)     # read source node.
-        print(source)
         # TODO: error for node not finding.
         for tid in target_ids:
             if not isinstance(tid, GraphNode):
@@ -179,8 +194,9 @@ class GraphScene(QGraphicsScene):
         :param node_id: id of node that we want to delete.
         :return:
         """
+        # check one node in the collections.
         node = self.nodes.get(node_name)
-        if node:
+        if node:    # if node exist.
             node.delete(self)
             del self.nodes[node_name]
         else:
@@ -195,7 +211,7 @@ class GraphScene(QGraphicsScene):
         if self.root_node:  # if another node is root, change it.
             # TODO: warning for changing the node.
             self.root_node.setBrush(QBrush(QColor("skyblue")))
-
+        # checks for type.
         if isinstance(node_name, GraphNode) and node_name not in list(self.nodes.keys()):
             pass
             # TODO: error handling
@@ -206,16 +222,23 @@ class GraphScene(QGraphicsScene):
             pass
             # TODO: error handling
 
+        # if name given, check from collection
         if isinstance(node_name, str):
             self.root_node = self.nodes[node_name]
         else:
             self.root_node = node_name
 
+        # change color of node to green for setting root.
         self.root_node.setBrush(QBrush(QColor("green")))
 
     def delete_root_node(self):
+        """
+            delete root node and backtrack color of it.
+        :return:
+        """
+        # if root not exist, return
         if self.root_node is not None:
-            self.root_node.setBrush(QBrush(QColor("skyblue")))
+            self.root_node.setBrush(QBrush(QColor("skyblue")))        # change color.
             self.root_node = None
 
     def add_goal_node(self, node_name):
@@ -224,6 +247,7 @@ class GraphScene(QGraphicsScene):
         :param node_name: id that we want to change it to goal
         :return:
         """
+        # type checking.
         if isinstance(node_name, GraphNode) and node_name not in list(self.nodes.keys()):
             pass
             # TODO: error handling
@@ -233,9 +257,10 @@ class GraphScene(QGraphicsScene):
         else:
             pass
             # TODO: error handling
+        # if user give node name, read it from collection.
         temp = self.nodes[node_name] if isinstance(node_name, str) else node_name
-        temp.setBrush(QBrush(QColor("red")))
-        self.goal_nodes.append(temp)
+        temp.setBrush(QBrush(QColor("red")))               # change color of goal to red.
+        self.goal_nodes.append(temp)                       # append to node list
         # TODO: delete if not exist node happen
 
     def delete_goal_node(self, node_id):
@@ -244,6 +269,7 @@ class GraphScene(QGraphicsScene):
         :param node_id:
         :return:
         """
+        # errors
         if node_id not in self.nodes:
             pass
         # TODO: error for node not exist
@@ -252,14 +278,15 @@ class GraphScene(QGraphicsScene):
             pass  # TODO: node id not in goal node error
 
         temp = self.nodes.get(node_id) if isinstance(node_id, str) else node_id
-        temp.setBrush(QBrush(QColor("skyblue")))
-        self.goal_nodes.remove(temp)
+        temp.setBrush(QBrush(QColor("skyblue")))            # backtrack color to sky blue
+        self.goal_nodes.remove(temp)                        # remove from list
 
     def update_edges(self):
         """
             update when node change position
         :return:
         """
+        # for each edge for each node, update edge
         for node in self.nodes.values():
             for edge in node.connections:
                 edge.update_position()
@@ -269,7 +296,7 @@ class GraphView(QGraphicsView):
     def __init__(self, scene, weight=400, height=700):
         """
             chnage position of nodes and edges when nodes move
-        :param scene:
+        :param scene: scene that you set for view.
         """
         super().__init__(scene)
         self.setFixedSize(weight, height)

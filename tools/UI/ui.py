@@ -1,9 +1,7 @@
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QHBoxLayout,
-                                QVBoxLayout, QWidget, QLineEdit,
-                                QPushButton, QLineEdit, QLabel, QCheckBox, QScrollArea)
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QPixmap
+                                QVBoxLayout, QWidget, QLineEdit, QPushButton, QCheckBox,
+                               QLabel, QScrollArea)
 
 from .graphs import *
 
@@ -154,6 +152,7 @@ class MainWindow(QMainWindow):
         :param node: user's selected node
         :return:
         """
+        # if before this, one node selected, we do connection rules.
         if self.edge_mode:
             if self.source_node == node: return
             if node in self.source_node.connected_nodes:
@@ -161,6 +160,7 @@ class MainWindow(QMainWindow):
             else:
                 self.scene.add_edges_from_list(self.source_node, [node])
             self.__add_connected_nodes_labels(self.source_node)
+        # main node selection section
         else:
             self.source_node = node
             self.__remove_widgets(self.tool_layout)
@@ -184,8 +184,6 @@ class MainWindow(QMainWindow):
             self.unselect_btn = QPushButton('Unselect')
             self.edge_control = QPushButton('Edge control')
 
-
-
             # actions
             self.unselect_btn.clicked.connect(self.__add_main_buttons)
             self.edge_control.clicked.connect(self.__add_edge)
@@ -206,6 +204,7 @@ class MainWindow(QMainWindow):
             apply changes of graph and show on scene.
         :return:
         """
+        # check root and goal check box for changing the graph's detais.
         if self.root_node.isChecked() and self.source_node != self.scene.root_node:
             self.scene.set_root_node(self.source_node)
         elif not self.root_node.isChecked() and self.source_node == self.scene.root_node:
@@ -215,6 +214,7 @@ class MainWindow(QMainWindow):
         elif not self.goal_node.isChecked() and self.source_node  in self.scene.goal_nodes:
             self.scene.delete_goal_node(self.source_node)
 
+        # change name of node.
         candidate_name = self.node_name_input.text().strip()
         if candidate_name != self.source_node.name:
             self.scene.change_name(self.source_node, candidate_name)
@@ -227,6 +227,7 @@ class MainWindow(QMainWindow):
         :param node:
         :return:
         """
+        # add connection labels to the edge section of one node.
         self.__remove_widgets(self.label_layout)
         self.edge_mode = True
         connection_names = [connected_node.name for connected_node in node.connected_nodes]
@@ -249,7 +250,6 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setMinimumHeight(100)
 
-
         # Container for labels
         self.label_container = QWidget()
         self.label_layout = QVBoxLayout(self.label_container)
@@ -259,7 +259,6 @@ class MainWindow(QMainWindow):
 
         # Configure scroll area
         scroll.setWidget(self.label_container)
-
 
         # button definitions
         back_btn = QPushButton('Back')
@@ -276,10 +275,3 @@ class MainWindow(QMainWindow):
         self.tool_layout.addWidget(scroll, alignment=Qt.AlignTop)
         self.tool_layout.addStretch(0)
         self.tool_layout.addWidget(back_btn, alignment=Qt.AlignBottom)
-
-
-
-
-
-
-
