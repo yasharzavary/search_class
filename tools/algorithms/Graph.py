@@ -11,12 +11,7 @@ from .Node import Node
 
 
 # built-in errors.
-class FalseSearchMode(Exception):
-    def __init__(self, message):
-        self.__mess = message
 
-    def __str__(self):
-        return self.__mess
 
 # main class
 class Graph:
@@ -49,7 +44,7 @@ class Graph:
         elif not isinstance(nodes, Node):
             raise TypeError(f'Nodes must be {type(Node)}, {nodes} is not!')
 
-    def DFS_search(self, mode: str = 'check', algorithm: str = 'DFS', deth_limit = -1):
+    def DFS_search(self, algorithm: str = 'DFS', deth_limit = -1):
         """
             DFS search manager, use classic way for finding path and exist check of one node from your given graph
             Attributes:
@@ -60,7 +55,6 @@ class Graph:
         :param mode: checking one node or finding path.
         :return:
         """
-        if mode not in ['check', 'path']: raise FalseSearchMode('search mode must be path or check')
         if algorithm not in ['DFS', 'IDS', 'DLS']: pass    # TODO: FalseAlgorithmChoice error for this part.
         if algorithm =='DLS' and deth_limit == -1: pass # TODO: DethLimitNotAssociated error for this part.
         # some info we need for searching.
@@ -98,7 +92,7 @@ class Graph:
                 d_limit += 1
         return None, 'goal node doesn\'t exist'
 
-    def BFS_search(self, mode: str = 'check'):
+    def BFS_search(self):
         """
             BFS search manager, it can find you optimal path for reaching you goal or just checking one node.
                 Attributes:
@@ -109,40 +103,30 @@ class Graph:
         :param mode: checking one node or finding path.
         :return:
         """
-        if mode not in ['check', 'path']: raise FalseSearchMode('search mode must be path')
         frontier = [self.__startRoot]
         visited = list()
-        if mode == 'path':
-            parents = dict()
-            while frontier:
-                now = frontier.pop(0)
-                visited.append(now)
-                if now in self.__goalRoot:
-                    temp = now
-                    path = [now.name]
-                    while temp.name != '0':
-                        temp = parents[temp]
-                        path.insert(0, temp.name)
-                    return f'node exist, path: {' -> '.join(path)}', now
+        parents = dict()
+        while frontier:
+            now = frontier.pop(0)
+            visited.append(now)
+            if now in self.__goalRoot:
+                temp = now
+                path = [now.name]
+                while temp.name != '0':
+                    temp = parents[temp]
+                    path.insert(0, temp.name)
+                return f'node exist, path: {' -> '.join(path)}', now
 
-                # analyze and add new children.
-                for child in now.children:
-                    if child not in visited:
-                        frontier.append(child)
-                        parents[child] = now
-        else:
-            while frontier:
-                now = frontier.pop(0)
-                visited.append(now)
-                if now in self.__goalRoot:
-                    return 'node exist', now
+            # analyze and add new children.
+            for child in now.children:
+                if child not in visited:
+                    frontier.append(child)
+                    parents[child] = now
 
-                # analyze and add new children.
-                for child in now.children:
-                    if child not in visited:
-                        frontier.append(child)
+        return None, 'goal node doesn\'t exist'
 
-
+    def bidirectional_search(self):
+        pass
 
 
 
