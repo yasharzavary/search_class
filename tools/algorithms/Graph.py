@@ -49,9 +49,7 @@ class Graph:
         elif not isinstance(nodes, Node):
             raise TypeError(f'Nodes must be {type(Node)}, {nodes} is not!')
 
-
-
-    def DFS_search(self, mode: str = 'check'):
+    def DFS_search(self, mode: str = 'check', algorithm: str = 'DFS', deth_limit = -1):
         """
             DFS search manager, use classic way for finding path and exist check of one node from your given graph
             Attributes:
@@ -63,39 +61,42 @@ class Graph:
         :return:
         """
         if mode not in ['check', 'path']: raise FalseSearchMode('search mode must be path or check')
-        frontier = [self.__startRoot]
-        visited = list()
-        if mode == 'path':
+        if algorithm not in ['DFS', 'IDS', 'DLS']: pass    # TODO: FalseAlgorithmChoice error for this part.
+        if algorithm =='DLS' and deth_limit == -1: pass # TODO: DethLimitNotAssociated error for this part.
+        # some info we need for searching.
+        loop = True
+        d_limit = 0 if algorithm == 'IDS' else deth_limit
+        while loop:
             way = list()
+            visited = list()
+            frontier = [self.__startRoot]
+            loop = False
+            depth = 0
+            end = True
             while frontier:
                 now = frontier.pop(0)
                 if now == '!!':
                     way.pop()
+                    depth -= 1
                     continue
                 elif now in visited: continue             # if we check this node before this, continue to next node
+                if algorithm in ['DLS', 'IDS'] and depth > d_limit:
+                    end = False
+                    continue
+                depth += 1
                 for goal in self.__goalRoot:
                     if now == goal:
                         return f'Find, node: {now}' if mode == 'check' else ' -> '.join(
                             [node.name for node in way] + [goal.name]
                         ), now    # return result if find
-
                 # add controling units.
                 visited.append(now)
                 way.append(now)
-                frontier = now.children + ['!!'] + frontier
-        else:
-            while frontier:
-                now = frontier.pop(0)
-                if now in visited:
-                    continue  # if we check this node before this, continue to next node
-                elif now == self.__goalRoot:
-                    return f'goal node find', now
-
-                # add controling units.
-                visited.append(now)
-                frontier = now.children + frontier
-
-        return 'goal node doesn\'t exist'
+                frontier = now.children + ['!!'] + frontier                     # add child to the front
+            if not end and algorithm == 'IDS':
+                loop = True
+                d_limit += 1
+        return None, 'goal node doesn\'t exist'
 
     def BFS_search(self, mode: str = 'check'):
         """
