@@ -11,7 +11,7 @@ from PySide6.QtGui import QBrush, QPen, QColor, QPainter
 # TODO: functions parameter definition.
 # TODO: control x and y of circles depend on graph screen.
 # TODO: graph without root and goal node error.
-# TODO: one node repeat twicen error.
+# TODO: one node repeat twice error.
 
 class NodeSignal(QObject):
     click = Signal(object)
@@ -85,17 +85,18 @@ class GraphEdge(QGraphicsLineItem):
 
         self.node1 = node1
         self.node2 = node2
-        self.setPen(QPen(Qt.darkGray, 2))
+
 
         # connect two node.
         self.update_position()
 
-    def update_position(self):
+    def update_position(self, color=Qt.darkGray):
         """
             update position of two node.
         :return:
         """
         # connect center of two node.
+        self.setPen(QPen(color, 2))
         p1 = self.node1.scenePos()
         p2 = self.node2.scenePos()
         self.setLine(p1.x(), p1.y(), p2.x(), p2.y())
@@ -111,6 +112,21 @@ class GraphScene(QGraphicsScene):
         self.node_counter: int = 0            # for nodes that don't have any name
         self.root_node: [GraphNode, None] = None
         self.goal_nodes: list = list()
+
+    def search_edge(self, node1, node2):
+        """
+            change color of path of search.
+        :param node1:
+        :param node2:
+        :return:
+        """
+        if isinstance(node1, str): node1 = self.nodes[node1]
+        if isinstance(node2, str): node2 = self.nodes[node2]
+        for edge in node1.connections:
+            if edge.node1 == node2 or edge.node2 == node2:
+                edge.update_position(color=Qt.red)
+                return
+
 
     def delete_edge(self, node1, node2):
         """
