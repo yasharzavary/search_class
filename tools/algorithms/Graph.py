@@ -8,7 +8,7 @@ last update: April 2, 2025
 I will appreciate for your suggestions about this class.
 """
 from .Node import Node
-
+import threading
 
 # built-in errors.
 
@@ -29,6 +29,15 @@ class Graph:
 
         self.__startRoot = start_node
         self.__goalRoot = [goal_nodes] if isinstance(goal_nodes, Node) else goal_nodes
+
+
+    @property
+    def start_node(self):
+        return self.__startRoot
+
+    @property
+    def goal_node(self):
+        return self.__goalRoot
 
 
     def __control(self, nodes: [Node, list]):
@@ -80,9 +89,9 @@ class Graph:
                 depth += 1
                 for goal in self.__goalRoot:
                     if now == goal:
-                        return f'Find, node: {now}' if mode == 'check' else ' -> '.join(
+                        return ' -> '.join(
                             [node.name for node in way] + [goal.name]
-                        ), now    # return result if find
+                        ), now, [node.name for node in way]    # return result if find
                 # add controling units.
                 visited.append(now)
                 way.append(now)
@@ -112,25 +121,143 @@ class Graph:
             if now in self.__goalRoot:
                 temp = now
                 path = [now.name]
-                while temp.name != '0':
+                while temp.name != self.__startRoot.name:
                     temp = parents[temp]
                     path.insert(0, temp.name)
-                return f'node exist, path: {' -> '.join(path)}', now
+                return ' -> '.join(path), now, path
 
             # analyze and add new children.
             for child in now.children:
-                if child not in visited:
+                if child not in visited and child not in frontier:
                     frontier.append(child)
                     parents[child] = now
+
 
         return None, 'goal node doesn\'t exist'
 
     def bidirectional_search(self):
-        pass
+        """
+            Implement bidirectional search using threading with BFS from start and DFS from goal
+        Returns:
+            tuple: (path, meeting_node, path_list) if found
+            tuple: (None, error_message) if not found
+        """
 
+        if len(self.__goalRoot) != 1:
+            pass
+            # TODO: GaolShouldBeOneNode error for this part.
 
+        # some memory for thread talk
+        shared_frontier = {'start_side': set(), 'goal_side': set()}
+        shared_visited = {'start_side': set(), 'goal_side': set()}
+        shared_parents = {'start_side': {}, 'goal_side': {}}
+        meeting_node = [None]
+        lock = threading.Lock()
+        event = threading.Event()               # when one thread find one shared node, event trigger.
 
+        # agent for second chaeck.
+        DFS_agent = Graph(start_node=self.__goalRoot[0], goal_nodes=[self.__startRoot])
 
+        def bfs_from_start():
+            """
+                BFS thread function for run BFS search.
+            :return:
+            """
+            frontier = [self.__startRoot]
+            visited = set()
+            parents = {}
 
+            while frontier and not event.is_set():
+                now = frontier.pop(0)
+                visited.add(now)
 
+                # Check if this node was visited by the other thread
+                with lock:
+                    if now in shared_visited['goal_side']:
+                        meeting_node[0] = now
+                        event.set()      # we find, search done.
+                        break
+                    # add to shared one for another thread.
+                    shared_visited['start_side'].add(now)
+                    shared_frontier['start_side'].add(now)
+
+                # Explore children
+                for child in now.children:
+                    if child not in visited and child not in frontier:
+                        frontier.append(child)
+                        parents[child] = now
+                        with lock:
+                            shared_parents['start_side'][child] = now
+
+        def dfs_from_goal():
+            """
+                DFS search function for run DFS search.
+            :return:
+            """
+            frontier = [DFS_agent.start_node]
+            visited = set()
+            parents = {}
+
+            while frontier and not event.is_set():
+                now = frontier.pop(0)
+                visited.add(now)
+
+                # Check if this node was visited by the other thread
+                with lock:
+                    if now in shared_visited['start_side']:
+                        meeting_node[0] = now
+                        event.set()
+                        break
+                    shared_visited['goal_side'].add(now)
+                    shared_frontier['goal_side'].add(now)
+
+                # Explore children (DFS)
+                new_nodes = []
+                for child in now.children:
+                    if child not in visited and child not in frontier:
+                        new_nodes.append(child)
+                        parents[child] = now
+                        with lock:
+                            shared_parents['goal_side'][child] = now
+                frontier = new_nodes + frontier
+
+        # Create and start threads
+        start_thread = threading.Thread(target=bfs_from_start)
+        goal_thread = threading.Thread(target=dfs_from_goal)
+
+        start_thread.start()
+        goal_thread.start()
+
+        # Wait for threads to complete
+        start_thread.join()
+        goal_thread.join()
+
+        # Check if we found a meeting point
+        if meeting_node[0] is None:
+            return None, "No path exists between start and goal"
+
+        # Reconstruct the path
+        path = []
+        # Build path from start to meeting node
+        node = meeting_node[0]
+        while node != self.__startRoot:
+            path.insert(0, node.name)
+            node = shared_parents['start_side'].get(node)
+
+        path.insert(0, self.__startRoot.name)
+
+        # Build path from meeting node to goal
+        node = meeting_node[0]
+        reverse_path = []
+        while node != DFS_agent.start_node:
+            reverse_path.append(node.name)
+            node = shared_parents['goal_side'].get(node, None)
+            if node is None:  # Shouldn't happen if search was successful
+                break
+
+        reverse_path.append(DFS_agent.start_node.name)
+
+        full_path = path + reverse_path[1:]  # Skip duplicate meeting node
+
+        return ' -> '.join(full_path), meeting_node[0], full_path
 
