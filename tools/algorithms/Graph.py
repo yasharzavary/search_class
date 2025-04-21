@@ -132,7 +132,7 @@ class Graph:
                 while temp.name != self.__startRoot.name:
                     temp = parents[temp]
                     path.insert(0, temp.name)
-                if now is self.__goalRoot:
+                if now in self.__goalRoot:
                     return ' -> '.join(path), now, path, time() - start
                 else:
                     print(' -> '.join(path))

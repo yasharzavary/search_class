@@ -97,12 +97,12 @@ class MainWindow(QMainWindow):
         :return:
         """
         self.__remove_widgets(self.tool_layout)
-        algorithm_box = QComboBox()
-        algorithm_box.addItem('DFS')
-        algorithm_box.addItem('IDS')
-        algorithm_box.addItem('BFS')
-        algorithm_box.addItem('DLS')
-        algorithm_box.addItem('bidirectional')
+        self.algorithm_box = QComboBox()
+        self.algorithm_box.addItem('DFS')
+        self.algorithm_box.addItem('IDS')
+        self.algorithm_box.addItem('BFS')
+        self.algorithm_box.addItem('DLS')
+        self.algorithm_box.addItem('bidirectional')
 
         # buttons definitions
         back_button = QPushButton('Back')
@@ -114,7 +114,7 @@ class MainWindow(QMainWindow):
         search_button.clicked.connect(self.__search_start)
 
 
-        self.tool_layout.addWidget(algorithm_box, alignment=Qt.AlignTop)
+        self.tool_layout.addWidget(self.algorithm_box, alignment=Qt.AlignTop)
         self.tool_layout.addWidget(search_button, alignment=Qt.AlignTop)
         self.tool_layout.addStretch(0)
         self.tool_layout.addWidget(back_button, alignment=Qt.AlignBottom)
@@ -168,9 +168,24 @@ class MainWindow(QMainWindow):
         self.__remove_widgets(self.message_control_layout)
         self.message_control_layout.addWidget(QLabel('Searching...'))
 
+
         agent = Graph(start_node=start_node, goal_nodes=goals)
-        result = agent.DFS_search()
+
+
+
+        if self.algorithm_box.currentIndex() == 0:
+            result = agent.DFS_search()
+        elif self.algorithm_box.currentIndex() == 1:
+            result = agent.DFS_search(algorithm='IDS')
+        elif self.algorithm_box.currentIndex() == 2:
+            result = agent.BFS_search()
+        elif self.algorithm_box.currentIndex() == 3:
+            result = agent.DFS_search(algorithm='DLS', deth_limit=0)
+        elif self.algorithm_box.currentIndex() == 4:
+            result = agent.bidirectional_search()
+
         print(result)
+
 
 
     def __remove_widgets(self, layout, labels=[]):
