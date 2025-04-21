@@ -1,13 +1,11 @@
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QHBoxLayout,
                                 QVBoxLayout, QWidget, QLineEdit, QPushButton, QCheckBox,
-                               QLabel, QScrollArea)
+                               QLabel, QScrollArea, QComboBox, QProgressBar)
 
 from .graphs import *
-
-
-# TODO: message box in bottom of window.
-
+from tools.algorithms.Node import Node
+from tools.algorithms.Graph import Graph
 
 class MainWindow(QMainWindow):
 
@@ -21,6 +19,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(cenral_widget)
         self.edge_mode = False
         self.source_node: [None, GraphNode] = None
+        self.node_number = 0
 
         # main layout
         main_box = QVBoxLayout(cenral_widget)
@@ -83,6 +82,7 @@ class MainWindow(QMainWindow):
         # trigger button to functions
         exit_button.clicked.connect(self.__exit)
         change_button.clicked.connect(self.__change)
+        search_button.clicked.connect(self.__search_controller)
 
         # tool_layout.setSpacing(0)
         # tool_layout.setContentsMargins(0,0,0,0)
@@ -91,6 +91,86 @@ class MainWindow(QMainWindow):
         self.tool_layout.addStretch(0)
         self.tool_layout.addWidget(exit_button, alignment=Qt.AlignBottom)
 
+    def __search_controller(self):
+        """
+            used for search with methods.
+        :return:
+        """
+        self.__remove_widgets(self.tool_layout)
+        algorithm_box = QComboBox()
+        algorithm_box.addItem('DFS')
+        algorithm_box.addItem('IDS')
+        algorithm_box.addItem('BFS')
+        algorithm_box.addItem('DLS')
+        algorithm_box.addItem('bidirectional')
+
+        # buttons definitions
+        back_button = QPushButton('Back')
+        search_button = QPushButton('start')
+
+
+        # button connections
+        back_button.clicked.connect(self.__add_main_buttons)
+        search_button.clicked.connect(self.__search_start)
+
+
+        self.tool_layout.addWidget(algorithm_box, alignment=Qt.AlignTop)
+        self.tool_layout.addWidget(search_button, alignment=Qt.AlignTop)
+        self.tool_layout.addStretch(0)
+        self.tool_layout.addWidget(back_button, alignment=Qt.AlignBottom)
+
+
+    def __search_start(self):
+        # TODO: start node not selected Error.
+        # TODO: goal node not allocated Error.
+        # TODO: graph doesn't exist error.
+        # update progress bar settings.
+        self.__remove_widgets(self.message_control_layout)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, self.node_number)  # From 0 to 100
+        self.message_control_layout.addWidget(QLabel('Nodes collecting.'))
+        self.message_control_layout.addWidget(self.progress_bar)
+
+        # variables for my main loop
+        front = [self.scene.root_node]
+        visited = []
+        self.progress_bar.setValue(0)
+        child_map = dict()
+        node_map = dict()
+        goals = set()
+
+        # find nodes
+        while front:
+            temp = front.pop()
+            visited.append(temp)
+            self.progress_bar.setValue(self.progress_bar.value() + 1)
+            node_map[temp.name] = Node(temp.name)
+            child_map[temp.name] = [i.name for i in temp.connected_nodes]
+            front += [i for i in temp.connected_nodes if i not in visited]
+            if temp == self.scene.root_node: start_node = temp.name
+            elif temp in self.scene.goal_nodes: goals.add(temp.name)
+
+        self.__remove_widgets(self.message_control_layout)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, self.node_number)  # From 0 to 100
+        self.message_control_layout.addWidget(QLabel('Graph creating.'))
+        self.message_control_layout.addWidget(self.progress_bar)
+        self.progress_bar.setValue(0)
+
+        for key, value in child_map.items():
+            self.progress_bar.setValue(self.progress_bar.value() + 1)
+            node_map[key].children = [node_map[i] for i in value]
+            print(key, ' done!')
+
+        start_node = node_map[start_node]
+        goals = [node_map[i] for i in goals]
+
+        self.__remove_widgets(self.message_control_layout)
+        self.message_control_layout.addWidget(QLabel('Searching...'))
+
+        agent = Graph(start_node=start_node, goal_nodes=goals)
+        result = agent.DFS_search()
+        print(result)
 
 
     def __remove_widgets(self, layout, labels=[]):
@@ -142,6 +222,7 @@ class MainWindow(QMainWindow):
         """
         name = self.node_name_input.text().strip()                   # read name from input
         node = self.scene.add_node(name, -150, -150)                 # create new node and add to scene
+        self.node_number+=1
         node.signals.click.connect(self.__node_section)              # connect node mouse event
         # delete message section and add default label.
         self.__remove_widgets(self.message_control_layout, [QLabel('messages will apeear here')])
