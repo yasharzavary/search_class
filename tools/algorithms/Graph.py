@@ -9,6 +9,7 @@ I will appreciate for your suggestions about this class.
 """
 from .Node import Node
 import threading
+from time import time, sleep
 
 # built-in errors.
 
@@ -64,6 +65,7 @@ class Graph:
         :param mode: checking one node or finding path.
         :return:
         """
+        start = time()
         if algorithm not in ['DFS', 'IDS', 'DLS']: pass    # TODO: FalseAlgorithmChoice error for this part.
         if algorithm =='DLS' and deth_limit == -1: pass # TODO: DethLimitNotAssociated error for this part.
         # some info we need for searching.
@@ -78,6 +80,7 @@ class Graph:
             end = True
             while frontier:
                 now = frontier.pop(0)
+
                 if now == '!!':
                     way.pop()
                     depth -= 1
@@ -91,15 +94,19 @@ class Graph:
                     if now == goal:
                         return ' -> '.join(
                             [node.name for node in way] + [goal.name]
-                        ), now, [node.name for node in way]    # return result if find
+                        ), now, [node.name for node in way], time() - start    # return result if find
+
                 # add controling units.
                 visited.append(now)
                 way.append(now)
+                print(' -> '.join(
+                    [node.name for node in way]
+                ))
                 frontier = now.children + ['!!'] + frontier                     # add child to the front
             if not end and algorithm == 'IDS':
                 loop = True
                 d_limit += 1
-        return None, 'goal node doesn\'t exist'
+        return None, 'goal node doesn\'t exist', None, time() - start
 
     def BFS_search(self):
         """
@@ -112,19 +119,23 @@ class Graph:
         :param mode: checking one node or finding path.
         :return:
         """
+        start = time()
         frontier = [self.__startRoot]
         visited = list()
         parents = dict()
         while frontier:
             now = frontier.pop(0)
             visited.append(now)
-            if now in self.__goalRoot:
+            if True:
                 temp = now
                 path = [now.name]
                 while temp.name != self.__startRoot.name:
                     temp = parents[temp]
                     path.insert(0, temp.name)
-                return ' -> '.join(path), now, path
+                if now is self.__goalRoot:
+                    return ' -> '.join(path), now, path, time() - start
+                else:
+                    print(' -> '.join(path))
 
             # analyze and add new children.
             for child in now.children:
@@ -133,7 +144,8 @@ class Graph:
                     parents[child] = now
 
 
-        return None, 'goal node doesn\'t exist'
+
+        return None, 'goal node doesn\'t exist', None,  time() - start
 
     def bidirectional_search(self):
         """
@@ -142,7 +154,6 @@ class Graph:
             tuple: (path, meeting_node, path_list) if found
             tuple: (None, error_message) if not found
         """
-
         if len(self.__goalRoot) != 1:
             pass
             # TODO: GaolShouldBeOneNode error for this part.
@@ -154,6 +165,7 @@ class Graph:
         meeting_node = [None]
         lock = threading.Lock()
         event = threading.Event()               # when one thread find one shared node, event trigger.
+        start_event = threading.Event()
 
         # agent for second chaeck.
         DFS_agent = Graph(start_node=self.__goalRoot[0], goal_nodes=[self.__startRoot])
@@ -163,6 +175,7 @@ class Graph:
                 BFS thread function for run BFS search.
             :return:
             """
+            start_event.wait()
             frontier = [self.__startRoot]
             visited = set()
             parents = {}
@@ -194,6 +207,7 @@ class Graph:
                 DFS search function for run DFS search.
             :return:
             """
+            start_event.wait()
             frontier = [DFS_agent.start_node]
             visited = set()
             parents = {}
@@ -221,12 +235,15 @@ class Graph:
                             shared_parents['goal_side'][child] = now
                 frontier = new_nodes + frontier
 
+        start = time()
         # Create and start threads
         start_thread = threading.Thread(target=bfs_from_start)
         goal_thread = threading.Thread(target=dfs_from_goal)
 
-        start_thread.start()
         goal_thread.start()
+        start_thread.start()
+
+        start_event.set()
 
         # Wait for threads to complete
         start_thread.join()
@@ -234,7 +251,7 @@ class Graph:
 
         # Check if we found a meeting point
         if meeting_node[0] is None:
-            return None, "No path exists between start and goal"
+            return None, "No path exists between start and goal", None, time() - start
 
         # Reconstruct the path
         path = []
@@ -259,5 +276,4 @@ class Graph:
 
         full_path = path + reverse_path[1:]  # Skip duplicate meeting node
 
-        return ' -> '.join(full_path), meeting_node[0], full_path
-
+        return ' -> '.join(full_path), meeting_node[0], full_path, time() - start
