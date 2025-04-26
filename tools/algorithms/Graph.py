@@ -277,3 +277,62 @@ class Graph:
         full_path = path + reverse_path[1:]  # Skip duplicate meeting node
 
         return ' -> '.join(full_path), meeting_node[0], full_path, time() - start
+
+    def BFRS(self):
+        """
+            function will set and run BFRS search on graph that user give.
+        :return:
+        """
+        # TOOD: f is notdefined error.
+        def search(node, f_limit, goal):
+            """
+                recursive BFRS search algorithm.
+            :param node:
+            :param f_limit:
+            :param goal:
+            :return:
+            """
+            if node in goal:
+                print(node.name)
+                return True, [node.name]
+
+            while True:
+                print(node.name, ' ->', end=' ')
+                min_node: [Node, None] = None
+                alt: [Node, None] = None
+                for i in node.children:
+                    if i.f == float('inf'): continue
+                    if i.f <= f_limit:
+                        if min_node is None or min_node.f >= i.f:
+                            alt = min_node
+                            min_node = i
+                        elif alt is None or alt.f > i.f:
+                            alt = i
+                    if i.f < node.f:           # PathMax
+                        i.f = node.f
+                # penalty of one node.
+                if min_node is None:
+                    node.f = min([i.f for i in node.children]) if node.children else float('inf')
+                    return False, None
+                else:
+                    # resume search control.
+                    # TODO: better coding.
+                    if alt is None:
+                        res, data = search(min_node, f_limit, goal)
+                    elif alt.f <= f_limit:
+                        res, data = search(min_node, alt.f, goal)
+                    else:
+                        res, data = search(min_node, f_limit, goal)
+                if res:    # check result and act depend on it.
+                    data.insert(0, node.name)
+                    return True, data
+
+        start = time()
+        result, path = search(self.start_node, float('inf'), self.goal_node)
+        print()
+        if result:
+            return ' -> '.join(path), 'finded', path, time() - start
+        else:
+            return None, 'path doesn\'t exist', None, time() - start
+
+
