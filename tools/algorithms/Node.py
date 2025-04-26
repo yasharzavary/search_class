@@ -26,6 +26,7 @@ class Node:
                  child_list: list = None,
                  price_list: list = None,
                  info: dict = None,
+                 f: int = None,
                  ):
         """
         Node class.
@@ -42,6 +43,9 @@ class Node:
 
         :param name: name of Node.
         :param child_list: children of this Node.
+        :param price_list: price of this Node.
+        :param info: user can add some info about the node.
+        :param f: f value of node, f(n) = h(n) + g(n)
         """
         if child_list is None: child_list = list()
         if name is None:
@@ -63,6 +67,8 @@ class Node:
         # create info dict for Node.
         if info is not None and not isinstance(info, dict): raise TypeError('info must be a dict')
         self.__info = info if info is not None else dict()
+
+        self.f = f                                              # f(n) value of node.
 
     @property
     def name(self):
