@@ -1,11 +1,12 @@
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QHBoxLayout,
                                 QVBoxLayout, QWidget, QLineEdit, QPushButton, QCheckBox,
-                               QLabel, QScrollArea, QComboBox, QProgressBar)
+                               QLabel, QScrollArea, QComboBox, QProgressBar, QFileDialog)
 
 from .graphs import *
 from tools.algorithms.Node import Node
 from tools.algorithms.Graph import Graph
+from tools.UI.file_protocol import File
 
 class MainWindow(QMainWindow):
 
@@ -77,9 +78,11 @@ class MainWindow(QMainWindow):
         # buttons for control main part.
         change_button = QPushButton('Change')
         search_button = QPushButton('Search')
+        save_button = QPushButton('Save')
         exit_button = QPushButton('Exit')
 
         # trigger button to functions
+        save_button.clicked.connect(self.save_file)
         exit_button.clicked.connect(self.__exit)
         change_button.clicked.connect(self.__change)
         search_button.clicked.connect(self.__search_controller)
@@ -89,6 +92,7 @@ class MainWindow(QMainWindow):
         self.tool_layout.addWidget(change_button, alignment=Qt.AlignTop)
         self.tool_layout.addWidget(search_button, alignment=Qt.AlignTop)
         self.tool_layout.addStretch(0)
+        self.tool_layout.addWidget(save_button, alignment=Qt.AlignBottom)
         self.tool_layout.addWidget(exit_button, alignment=Qt.AlignBottom)
 
     def __search_controller(self):
@@ -119,11 +123,7 @@ class MainWindow(QMainWindow):
         self.tool_layout.addStretch(0)
         self.tool_layout.addWidget(back_button, alignment=Qt.AlignBottom)
 
-
-    def __search_start(self):
-        # TODO: start node not selected Error.
-        # TODO: goal node not allocated Error.
-        # TODO: graph doesn't exist error.
+    def __graph_creation(self):
         # update progress bar settings.
         self.__remove_widgets(self.message_control_layout)
         self.progress_bar = QProgressBar()
@@ -161,6 +161,15 @@ class MainWindow(QMainWindow):
             self.progress_bar.setValue(self.progress_bar.value() + 1)
             node_map[key].children = [node_map[i] for i in value]
             print(key, ' done!')
+
+        return start_node, goals, node_map
+
+    def __search_start(self):
+        # TODO: start node not selected Error.
+        # TODO: goal node not allocated Error.
+        # TODO: graph doesn't exist error.
+
+        start_node, goals, node_map = self.__graph_creation()
 
         start_node = node_map[start_node]
         goals = [node_map[i] for i in goals]
@@ -380,3 +389,27 @@ class MainWindow(QMainWindow):
         self.tool_layout.addWidget(scroll, alignment=Qt.AlignTop)
         self.tool_layout.addStretch(0)
         self.tool_layout.addWidget(back_btn, alignment=Qt.AlignBottom)
+
+    def save_file(self):
+        start_node, goals, node_map = self.__graph_creation()
+        # Create file dialog
+        file_dialog = QFileDialog(self)
+        file_dialog.setWindowTitle("Save Graph")
+        file_dialog.setAcceptMode(QFileDialog.AcceptSave)  # Save mode
+        file_dialog.setFileMode(QFileDialog.AnyFile)
+
+        # Set default filename and filter
+        file_dialog.selectFile("test.json")  # Default filename
+        file_dialog.setNameFilter("Text Files (*.json);;All Files (*)")
+
+        # Execute dialog
+        if file_dialog.exec():
+            selected_files = file_dialog.selectedFiles()
+            if selected_files:
+                file_path = selected_files[0]
+
+                # Here you would actually save your file
+                try:
+                    File.save(node_map[start_node], [node_map[i] for i in goals], file_path)
+                except Exception as e:
+                    print(e)
