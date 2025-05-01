@@ -184,8 +184,12 @@ class MainWindow(QMainWindow):
         elif self.algorithm_box.currentIndex() == 4:
             result = agent.bidirectional_search()
 
-        print(result)
-
+        path = list(result[0].split(' -> '))
+        if path:
+            self.scene.search_edge_color_change(path)
+        else:
+            self.__remove_widgets(self.message_control_layout)
+            self.message_control_layout.addWidget(QLabel('Path from root to goals not founded.'))
 
 
     def __remove_widgets(self, layout, labels=[]):
@@ -237,11 +241,16 @@ class MainWindow(QMainWindow):
         """
         name = self.node_name_input.text().strip()                   # read name from input
         node = self.scene.add_node(name, -150, -150)                 # create new node and add to scene
-        self.node_number+=1
+        self.node_number += 1
         node.signals.click.connect(self.__node_section)              # connect node mouse event
+        node.doubleSignals.click.connect(self.delete_node_from_scene)
         # delete message section and add default label.
         self.__remove_widgets(self.message_control_layout, [QLabel('messages will apeear here')])
-    
+
+    def delete_node_from_scene(self, node):
+        self.scene.delete_node(node.name)
+        self.__add_main_buttons()
+
     def __node_section(self, node):
         """
             control nodes
