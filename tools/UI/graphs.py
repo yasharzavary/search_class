@@ -16,6 +16,9 @@ from PySide6.QtGui import QBrush, QPen, QColor, QPainter
 class NodeSignal(QObject):
     click = Signal(object)
 
+class DoubleClickNodeSignal(QObject):
+    click = Signal(object)
+
 class GraphNode(QGraphicsEllipseItem):
     def __init__(self, name, x, y, radius=30):
         """
@@ -45,6 +48,7 @@ class GraphNode(QGraphicsEllipseItem):
         self.connected_nodes = []
 
         self.signals = NodeSignal()
+        self.doubleSignals = DoubleClickNodeSignal()
 
     def change_name(self,  new_name):
         """
@@ -72,6 +76,11 @@ class GraphNode(QGraphicsEllipseItem):
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         self.signals.click.emit(self)
+
+    def mouseDoubleClickEvent(self, event):
+        super().mouseDoubleClickEvent(event)
+        self.doubleSignals.click.emit(self)
+
 
 
 class GraphEdge(QGraphicsLineItem):
@@ -113,20 +122,26 @@ class GraphScene(QGraphicsScene):
         self.root_node: [GraphNode, None] = None
         self.goal_nodes: list = list()
 
-    def search_edge(self, node1, node2):
+    def search_edge_color_change(self, path):
         """
             change color of path of search.
         :param node1:
         :param node2:
         :return:
         """
-        if isinstance(node1, str): node1 = self.nodes[node1]
-        if isinstance(node2, str): node2 = self.nodes[node2]
-        for edge in node1.connections:
-            if edge.node1 == node2 or edge.node2 == node2:
-                edge.update_position(color=Qt.red)
-                return
-
+        node1 = self.root_node
+        for i in range(len(path) - 1):
+            node2 = path[i + 1]
+            for edge in node1.connections:
+                if edge.node1.name == node2:
+                    next_node = edge.node1
+                    edge.update_position(color=Qt.red)
+                    break
+                elif edge.node2.name == node2:
+                    next_node = edge.node2
+                    edge.update_position(color=Qt.red)
+                    break
+            node1 = next_node
 
     def delete_edge(self, node1, node2):
         """
